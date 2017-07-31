@@ -5,6 +5,8 @@ A tool for extracting information from IDA databases.
 `idbtool` knows how to handle databases from all IDA versions since v2.0, both `i64` and `idb` files.
 You can also use `idbtool` to recover information from unclosed databases.
 
+`idbtool` works without change with IDA v7.0.
+
 
 Much faster than loading a file in IDA
 --------------------------------------
@@ -17,6 +19,9 @@ More precisely: on my laptop it takes:
  *  3.8 seonds to print idb info for 441 files.
  *  5.6 seconds to extract 281 enums containing 4726 members from 35 files.
  * 67.8 seconds to extract 5942 structs containing 33672 members from 265 files.
+
+Loading a approximately 5 Gbyte idb file in IDA, takes about 45 minutes.
+While idb3.h takes basically no time at all, no more than a few milliseconds.
 
 
 Download
@@ -71,7 +76,6 @@ example:
 
 Will list the source binary for all the databases specified on the commandline.
 
-
 A query is a string with the following format:
 
  * [==,<=,>=,<,>]  - optional relation, default: ==
@@ -90,6 +94,20 @@ example queries:
  * `<Root Node` -> prints the 10 records startng with the recordsbefore the rootnode.
  * `.0xff000001;N` -> prints the rootnode name entry.
  * `#1;N` -> prints the rootnode name entry.
+
+List the highest node and following record in the database in two different ways,
+the first: starting at the first record below `ffc00000`, and listing the next.
+The second: starting at the first record after `ffc00000`, and listing the previous:
+ * `--query "<#0xc00000"  --limit 2 --inc -v`
+ * `--query ">#0xc00000"  --limit 2 --dec -v`
+
+Note that this should be the nodeid in the `$ MAX NODE` record.
+
+List the last two records:
+ * `--limit 2 --dec  -v`
+
+List the first two records, the `$ MAX LINK` and `$ MAX NODE` records:
+ * `--limit 2 --inc -v`
 
 
 A full database dump
@@ -176,9 +194,9 @@ methods
 
 methods
  * `void next()`
-    * move cursor to the next btree node
+    * move cursor to the next btree record
  * `void prev()`
-    * move cursor to the previous btree node
+    * move cursor to the previous btree record
  * `bool eof()`
     * did we reach the start/end of the btree?
  * `std::string `getkey()`
